@@ -38,9 +38,12 @@ public class AuthController {
     }
     
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegisterUserDto payload) {
+    public ResponseEntity<TokenDto> register(@RequestBody RegisterUserDto payload) {
         User registeredUser = authService.register(payload);
-        return ResponseEntity.ok(registeredUser);
+        String jwtToken = jwtService.generateToken(registeredUser);
+        TokenDto response = new TokenDto();
+        response.setToken(jwtToken);
+        return ResponseEntity.ok(response);
     }
     
     @PostMapping("/login")
