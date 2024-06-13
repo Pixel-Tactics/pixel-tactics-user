@@ -8,5 +8,5 @@ import java.util.Optional;
 
 
 public interface MatchRewardRepository extends JpaRepository<MatchReward, String> {
-    Optional<MatchReward> findByMatchHistory(MatchHistory matchHistory);
+    Optional<MatchReward> findFirstByMatchHistory(MatchHistory matchHistory);
 }

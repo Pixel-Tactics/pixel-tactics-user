@@ -35,7 +35,10 @@ public class MatchHistoryService {
             throw new NoSuchElementException("Match history does not exist");
         }
         MatchHistory history = historyOpt.get();
-        if (!history.getWinner().equals(user) && !history.getLoser().equals(user)) {
+        String curUsername = user.getUsername();
+        String winnerUsername = history.getWinner().getUsername();
+        String loserUsername = history.getLoser().getUsername();
+        if (!winnerUsername.equals(curUsername) && !loserUsername.equals(curUsername)) {
             throw new NoSuchElementException("Match history does not exist");
         }
         return history;
@@ -43,9 +46,9 @@ public class MatchHistoryService {
     
     public MatchReward getReward(User user, String matchId) {
         MatchHistory history = getHistory(user, matchId);
-        Optional<MatchReward> rewardOpt = rewardRepository.findByMatchHistory(history);
+        Optional<MatchReward> rewardOpt = rewardRepository.findFirstByMatchHistory(history);
         if (!rewardOpt.isPresent()) {
-            throw new NoSuchElementException("Match reward is not processed");
+            return null;
         }
         return rewardOpt.get();
     }

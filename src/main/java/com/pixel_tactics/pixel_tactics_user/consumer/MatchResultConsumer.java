@@ -3,6 +3,7 @@ package com.pixel_tactics.pixel_tactics_user.consumer;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import com.pixel_tactics.pixel_tactics_user.dto.statistics.ResultDto;
 import com.pixel_tactics.pixel_tactics_user.dto.statistics.UpdateStatisticsDto;
 import com.pixel_tactics.pixel_tactics_user.service.StatisticsService;
 
@@ -16,6 +17,7 @@ public class MatchResultConsumer {
     
     @RabbitListener(queues = "matches.statistics")
     public void receiveMessage(UpdateStatisticsDto payload) {
-        statisticsService.updateStatistics(payload);
+        ResultDto results = statisticsService.updateStatistics(payload);
+        statisticsService.batchSave(results.getBatchUsers(), results.getBatchRewards());
     }
 }

@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 
+import com.pixel_tactics.pixel_tactics_user.dto.statistics.RewardDto;
 import com.pixel_tactics.pixel_tactics_user.entities.MatchHistory;
 import com.pixel_tactics.pixel_tactics_user.entities.MatchReward;
 import com.pixel_tactics.pixel_tactics_user.entities.User;
@@ -39,17 +39,13 @@ public class MatchHistoryController {
     }
     
     @GetMapping("/{matchId}/poll")
-    public DeferredResult<ResponseEntity<MatchReward>> longPollRewardProcess(@PathVariable String matchId) throws InterruptedException {
+    public ResponseEntity<RewardDto> pollRewardProcess(@PathVariable String matchId) {
         User user = getCurrentUser();
-        DeferredResult<ResponseEntity<MatchReward>> output = new DeferredResult<>(10000L);
-        while (!output.isSetOrExpired()) {
-            try {
-                output.setResult(ResponseEntity.ok(service.getReward(user, matchId)));
-            } catch (Exception exception) {
-                Thread.sleep(2000L);
-            }
+        MatchReward reward = service.getReward(user, matchId);
+        if (reward == null) {
+            return ResponseEntity.status(202).body(new RewardDto());
         }
-        return output;
+        return ResponseEntity.ok(new RewardDto(reward));
     }
     
     private User getCurrentUser() {

@@ -6,15 +6,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "match_rewards")
 @Entity
 public class MatchReward {
     @Id
     @Column(nullable = false)
-    private String rewardId;
+    private String id;
     
     @ManyToOne
     @JoinColumn(name="user_id", nullable = false)
