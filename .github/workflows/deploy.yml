@@ -9,6 +9,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: Deploy
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,6 +34,10 @@ jobs:
       - name: Build JAR
         run: |
           mvn --batch-mode --update-snapshots verify
+        env:
+          JDBC_DATABASE_URL: jdbc:postgresql://postgres:5432/postgres
+          JDBC_DATABASE_USERNAME: postgres
+          JDBC_DATABASE_PASSWORD: postgres
 
       - name: Docker Hub Login
         run: |
@@ -44,4 +60,4 @@ jobs:
           script: |
             docker container rm -f ${{ vars.DOCKER_CONTAINER_NAME }}
             docker image rm -f ${{ vars.DOCKER_HUB_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ vars.DOCKER_IMAGE_TAG }}
-            docker run --name pixel-tacics-user -e JDBC_DATABASE_URL=${{ secrets.JDBC_DATABASE_URL }} -e JDBC_DATABASE_USERNAME=${{ secrets.JDBC_DATABASE_USERNAME }} -e JDBC_DATABASE_PASSWORD=${{ secrets.JDBC_DATABASE_PASSWORD }} -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} -e JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }} -e MICROSERVICE_SECRET_KEY=${{ secrets.MICROSERVICE_SECRET_KEY }} -e RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST }} -e RABBITMQ_PORT=${{ secrets.RABBITMQ_PORT }} -e RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }} -e RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }} -d -p 8080:8080 ${{ vars.RABBITMQ_PASSWORD }}
+            docker run --name pixel-tacics-user -e JDBC_DATABASE_URL=${{ secrets.JDBC_DATABASE_URL }} -e JDBC_DATABASE_USERNAME=${{ secrets.JDBC_DATABASE_USERNAME }} -e JDBC_DATABASE_PASSWORD=${{ secrets.JDBC_DATABASE_PASSWORD }} -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} -e JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }} -e MICROSERVICE_SECRET_KEY=${{ secrets.MICROSERVICE_SECRET_KEY }} -e RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST }} -e RABBITMQ_PORT=${{ secrets.RABBITMQ_PORT }} -e RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }} -e RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }} -d -p 8080:8080 ${{ vars.DOCKER_HUB_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ vars.DOCKER_IMAGE_TAG }}
