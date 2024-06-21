@@ -1,0 +1,47 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build JAR
+        run: |
+          mvn --batch-mode --update-snapshots verify
+
+      - name: Docker Hub Login
+        run: |
+          echo ${{ secrets.DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.DOCKER_HUB_USER }} --password-stdin docker.io
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ vars.DOCKER_HUB_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ vars.DOCKER_IMAGE_TAG }} .
+
+      - name: Push Image to Docker Hub
+        run: docker push ${{ vars.DOCKER_HUB_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ vars.DOCKER_IMAGE_TAG }}
+
+      - name: Run Docker Image
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.DEPLOYMENT_HOST }}
+          username: ${{ secrets.DEPLOYMENT_HOST_USERNAME }}
+          key: ${{ secrets.DEPLOYMENT_HOST_KEY }}
+          port: 22
+          script: |
+            docker container rm -f ${{ vars.DOCKER_CONTAINER_NAME }}
+            docker image rm -f ${{ vars.DOCKER_HUB_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ vars.DOCKER_IMAGE_TAG }}
+            docker run --name pixel-tacics-user -e JDBC_DATABASE_URL=${{ secrets.JDBC_DATABASE_URL }} -e JDBC_DATABASE_USERNAME=${{ secrets.JDBC_DATABASE_USERNAME }} -e JDBC_DATABASE_PASSWORD=${{ secrets.JDBC_DATABASE_PASSWORD }} -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} -e JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }} -e MICROSERVICE_SECRET_KEY=${{ secrets.MICROSERVICE_SECRET_KEY }} -e RABBITMQ_HOST=${{ secrets.RABBITMQ_HOST }} -e RABBITMQ_PORT=${{ secrets.RABBITMQ_PORT }} -e RABBITMQ_USERNAME=${{ secrets.RABBITMQ_USERNAME }} -e RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }} -d -p 8080:8080 ${{ vars.RABBITMQ_PASSWORD }}
