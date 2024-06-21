@@ -35,7 +35,7 @@ jobs:
         run: |
           mvn --batch-mode --update-snapshots verify
         env:
-          JDBC_DATABASE_URL: jdbc:postgresql://postgres:5432/postgres
+          JDBC_DATABASE_URL: jdbc:postgresql://localhost:5432/postgres
           JDBC_DATABASE_USERNAME: postgres
           JDBC_DATABASE_PASSWORD: postgres
 
