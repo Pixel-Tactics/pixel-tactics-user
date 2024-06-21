@@ -46,7 +46,7 @@ public class MatchHistoryService {
     
     public MatchReward getReward(User user, String matchId) {
         MatchHistory history = getHistory(user, matchId);
-        Optional<MatchReward> rewardOpt = rewardRepository.findFirstByMatchHistory(history);
+        Optional<MatchReward> rewardOpt = rewardRepository.findFirstByMatchHistoryAndUser(history, user);
         if (!rewardOpt.isPresent()) {
             return null;
         }
