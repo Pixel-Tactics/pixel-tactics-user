@@ -41,6 +41,20 @@ public class User implements UserDetails {
         updateLevel();
     }
     
+    public int getMaxExperience() {
+        return this.level * 50;
+    }
+    
+    public int getCurExperience() {
+        int cur = 50;
+        int tempExp = this.experience;
+        while (tempExp >= cur) {
+            tempExp -= cur;
+            cur += 50;
+        }
+        return tempExp;
+    }
+    
     private void updateLevel() {
         int newLevel = 1;
         int cur = 50;
